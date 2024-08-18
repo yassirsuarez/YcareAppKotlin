@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="98dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="98dp"
+        android:layout_marginBottom="16dp"
+        android:text="I tuoi medicamenti"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        app:layout_constraintBottom_toTopOf="@+id/aggiungi_medicina"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/medicine_main"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/aggiungi_medicina"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="26dp"
+        android:text="Aggiungi Medicinale"
+        app:layout_constraintBottom_toTopOf="@+id/mostra_medicine"
+        app:layout_constraintEnd_toEndOf="@+id/textView2"
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+    <Button
+        android:id="@+id/mostra_medicine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="11dp"
+        android:layout_marginBottom="33dp"
+        android:text="Tutti i Medicinali"
+        app:layout_constraintBottom_toTopOf="@+id/medicine_main"
+        app:layout_constraintStart_toStartOf="@+id/aggiungi_medicina"
+        app:layout_constraintTop_toBottomOf="@+id/aggiungi_medicina" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/medicine_main"
+        android:layout_width="379dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mostra_medicine" />
+</androidx.constraintlayout.widget.ConstraintLayout>

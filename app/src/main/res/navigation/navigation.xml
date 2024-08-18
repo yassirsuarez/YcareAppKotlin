@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation"
+    app:startDestination="@id/home">
+    <fragment
+        android:id="@+id/home"
+        android:name="com.example.navigation.Home"
+        android:label="home"
+        tools:layout="@layout/home" >
+        <action
+            android:id="@+id/action_home_to_medicine"
+            app:destination="@id/medicine" />
+        <action
+            android:id="@+id/action_medicine_self"
+            app:destination="@id/medicine" />
+        <action
+            android:id="@+id/action_home_to_appuntamenti"
+            app:destination="@id/appuntamenti" />
+    </fragment>
+    <fragment
+        android:id="@+id/storico"
+        android:name="com.example.navigation.Storico"
+        android:label="storico"
+        tools:layout="@layout/storico" />
+    <fragment
+        android:id="@+id/medicine"
+        android:name="com.example.navigation.Medicine"
+        android:label="Medicine"
+        tools:layout="@layout/medicine"/>
+    <fragment
+        android:id="@+id/appuntamenti"
+        android:name="com.example.navigation.Appuntamenti"
+        android:label="Appuntamenti"
+        tools:layout="@layout/appuntamenti"/>
+</navigation>

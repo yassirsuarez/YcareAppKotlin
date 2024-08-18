@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.navigation.MedicinaViewModel" />
+    </data>
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Inserisci Nuova Medicina"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:paddingBottom="16dp"/>
+
+        <ImageView
+            android:id="@+id/medicine_photo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:src="@drawable/default_medicne"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="16dp"
+            android:onClick="selectPhoto"/>
+
+        <EditText
+            android:id="@+id/medicina_nome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nome Medicina"
+            android:text="@={viewModel.nomeMedicina}"
+            android:inputType="text"
+            android:paddingBottom="16dp"/>
+
+        <EditText
+            android:id="@+id/medicine_numero"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Numero Pasticchiere"
+            android:inputType="number"
+            android:text="@={viewModel.numeroMedicine}"
+            android:paddingBottom="16dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+            <TextView
+                android:id="@+id/label_data_inizio_medicina"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@={viewModel.dataInizio}"
+                >
+
+            </TextView>
+        <EditText
+            android:id="@+id/Inizio_medicina"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Data Inizio"
+            android:inputType="date"
+            android:layout_weight="1"
+            android:paddingBottom="16dp"
+            android:focusable="false"
+            android:onClick="showDatePickerDialog"/>
+    </LinearLayout>
+        <!-- Volte al Giorno -->
+        <EditText
+            android:id="@+id/medicina_volte_giorno"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Volte al Giorno"
+            android:inputType="number"
+            android:paddingBottom="16dp"
+            android:text="@={viewModel.voltePerGiorno}"  />
+
+        <LinearLayout
+            android:id="@+id/pulsanti_ore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
+
+
+        </LinearLayout>
+        <Button
+            android:id="@+id/medicina_conferma"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Salva"
+            android:onClick="saveMedicine"/>
+    </LinearLayout>
+</ScrollView>
+    </layout>

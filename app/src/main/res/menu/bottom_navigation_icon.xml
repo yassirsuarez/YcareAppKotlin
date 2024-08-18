@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_appuntamenti"
+        android:icon="@drawable/visite"
+        android:title="Visite" />
+    <item
+        android:id="@+id/navigation_medicine"
+        android:icon="@drawable/medicine"
+        android:title="Medicine" />
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/home"
+        android:title="Home" />
+
+    <item
+        android:id="@+id/navigation_storico"
+        android:icon="@drawable/salute"
+        android:title="Salute" />
+
+
+</menu>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "604441722861",
+    "project_id": "medicina-90dac",
+    "storage_bucket": "medicina-90dac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:604441722861:android:be4d46b0952121f0ef31e4",
+        "android_client_info": {
+          "package_name": "com.example.navigation"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsNaYw9vNtEZG66N0AHptxEfPFwikVLoU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
