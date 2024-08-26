@@ -33,10 +33,8 @@ class Profilo:AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar2)
         setSupportActionBar(toolbar)
         auth = FirebaseAuth.getInstance()
-        // Ottieni l'utente corrente
         val user = auth.currentUser
 
-        // Verifica se l'utente è autenticato
         user?.let {
             val uid = it.uid
 

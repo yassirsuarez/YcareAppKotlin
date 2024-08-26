@@ -11,7 +11,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.map
 import com.google.firebase.storage.FirebaseStorage
-
+import android.content.Context
+import android.widget.Toast
 
 class DottoreViewModel : ViewModel() {
 
@@ -52,24 +53,39 @@ class DottoreViewModel : ViewModel() {
             }
     }
 
-    fun updateDottore(uid:String,nome:String,luogo:String,numero:String,imageUrl:String?, orari: Map<String, MutableMap<String, String>>){
-            val updates = hashMapOf(
-                "id_user" to uid,
-                "nome" to nome,
-                "luogo" to luogo,
-                "numero" to numero,
-                "orari" to orari,
-                "foto" to imageUrl
-            )
-            db.collection("dottore").document(uid)
-                .update(updates as Map<String, Any>)
-                .addOnSuccessListener {
-                    Log.d("ViewModel", "Documento aggiornato con successo")
-                }
-                .addOnFailureListener { e ->
-                    Log.e("ViewModel", "Errore durante l'aggiornamento del documento", e)
-                }
+    fun updateDottore(
+        uid: String,
+        nome: String,
+        luogo: String,
+        numero: String,
+        imageUrl: String?,
+        orari: Map<String, MutableMap<String, String>>,
+        context: Context,
+        callback: (Boolean) -> Unit
+    ) {
+        if (nome.isEmpty() || luogo.isEmpty() || numero.isEmpty()) {
+            Toast.makeText(context, "Completa tutti i campi obbligatori", Toast.LENGTH_SHORT).show()
+            callback(false)
+            return
+        }
 
+        val updates = hashMapOf(
+            "id_user" to uid,
+            "nome" to nome,
+            "luogo" to luogo,
+            "numero" to numero,
+            "orari" to orari,
+            "foto" to imageUrl
+        )
+
+        db.collection("dottore").document(uid)
+            .update(updates as Map<String, Any>)
+            .addOnSuccessListener {
+                callback(true) // Operazione riuscita
+            }
+            .addOnFailureListener { e ->
+                callback(false) // Errore durante l'operazione
+            }
     }
 
     fun getOrarioPerGiorno(giorno: String, chiave: String): LiveData<String> {

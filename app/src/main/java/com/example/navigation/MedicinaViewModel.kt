@@ -14,6 +14,7 @@ import android.net.Uri
 import android.widget.Toast
 import com.google.firebase.firestore.DocumentChange
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 
 class MedicinaViewModel : ViewModel() {
     val pulsantiOra = MutableLiveData<List<String>>()
@@ -27,12 +28,10 @@ class MedicinaViewModel : ViewModel() {
     val medicineList: LiveData<List<MedicinaData>> get() = _medicineList
     private val _expandedMedicineList = MutableLiveData<List<ExpandedMedicineItem>>()
     val expandedMedicineList: LiveData<List<ExpandedMedicineItem>> get() = _expandedMedicineList
-
+    private val _insertSuccess = MutableLiveData<Boolean>()
+    val insertSuccess: LiveData<Boolean> get() = _insertSuccess
     private val _medicineX = MutableLiveData<MedicinaData?>()
     val medicineX: LiveData<MedicinaData?> get() = _medicineX
-    private val _orariX = MutableLiveData<Map<String, MedicinaData.Orario>>()
-    val orariX: LiveData<Map<String, MedicinaData.Orario>> get() = _orariX
-
     private var imageUri: Uri? = null
     private lateinit var auth: FirebaseAuth
     private val db = FirebaseFirestore.getInstance()
@@ -49,20 +48,18 @@ class MedicinaViewModel : ViewModel() {
                 .whereEqualTo("user_id", userid.uid)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
-                        Log.e("Firestore error", error.message.toString())
                         return@addSnapshotListener
                     }
-
                     val medicineArrayList = mutableListOf<MedicinaData>()
                     snapshot?.documentChanges?.forEach { dc ->
                         if (dc.type == DocumentChange.Type.ADDED) {
                             try {
                                 val medicine = dc.document.toObject(MedicinaData::class.java)
-                                if (medicine.numero_medicine.toInt() > 0) {
+                                if (medicine.numero_medicine.toInt() >=0) {
                                     medicineArrayList.add(medicine)
                                 }
                             } catch (e: Exception) {
-                                Log.e("Firestore error", "Could not deserialize medicine data", e)
+                                Log.e("Firestore errore", "errore", e)
                             }
                         }
                     }
@@ -73,9 +70,8 @@ class MedicinaViewModel : ViewModel() {
         }
     }
 
-    fun updatePresa(id_medicina: String, orario: String, nuovoStato: Boolean = true) {
+    fun updatePresa(id_medicina: String, orario: String, context: Context, nuovoStato: Boolean = true) {
         val docRef = db.collection("medicine").document(id_medicina)
-
         db.runTransaction { transaction ->
             val snapshot = transaction.get(docRef)
             val orariMap = snapshot.get("orari") as? MutableMap<String, MutableMap<String, Any>>
@@ -95,24 +91,42 @@ class MedicinaViewModel : ViewModel() {
             if (numeroMedicine > 0) {
                 transaction.update(docRef, "numero_medicine", (numeroMedicine - 1).toString())
             }
-
             null
         }.addOnSuccessListener {
-            Log.d("TAG", "DocumentSnapshot successfully updated!")
+            Toast.makeText(context, "Medicine Presa con successo", Toast.LENGTH_SHORT).show()
+            Log.d("TAG", "Aggiornamento eseguito")
         }.addOnFailureListener { e ->
-            Log.w("TAG", "Error updating document", e)
+            Log.w("TAG", "Errore aggiornamento", e)
         }
     }
 
-    fun inserireMedicina(foto: Uri?) {
+    fun inserireMedicina(foto: Uri?, context: Context) {
+        if (context !is AppCompatActivity) {
+          _insertSuccess.postValue(false)
+            return
+        }
+
+        if (nomeMedicina.value.isNullOrEmpty() ||
+            numeroMedicine.value.isNullOrEmpty() ||
+            voltePerGiorno.value.isNullOrEmpty() ||
+            dataInizio.value.isNullOrEmpty()) {
+            Toast.makeText(context, "Completa tutti i campi", Toast.LENGTH_SHORT).show()
+            _insertSuccess.postValue(false)
+            return
+        }
+
         auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
         val uid = user?.uid
         if (uid == null) {
             Log.w("MedicinaViewModel", "Utente non autenticato")
+            Toast.makeText(context, "Utente non autenticato", Toast.LENGTH_SHORT).show()
+            _insertSuccess.postValue(false)
             return
         }
+
         imageUri = foto
+
         uploadImageAndGetUrl { imageUrl ->
             val sanitizedOrari = orari.value?.filterKeys { it != "initialized" }?.mapValues { (_, orarioData) ->
                 Orario(
@@ -135,61 +149,86 @@ class MedicinaViewModel : ViewModel() {
                 .add(medicina)
                 .addOnSuccessListener { documentReference ->
                     val medicinaId = documentReference.id
-                        db.collection("medicine")
-                            .document(documentReference.id)
-                            .update("id", medicinaId)
+                    db.collection("medicine")
+                        .document(documentReference.id)
+                        .update("id", medicinaId)
                         .addOnSuccessListener {
-                            Log.w(TAG, "Documento aggiunto e aggiornato con ID: $medicinaId")
+                            Toast.makeText(context, "Medicina inserita correttamente", Toast.LENGTH_SHORT).show()
+                            _insertSuccess.postValue(true)
                         }
                         .addOnFailureListener { e ->
-                            Log.w(TAG, "Errore durante l'aggiornamento del documento", e)
+                            Toast.makeText(context, "Errore durante l'aggiornamento del documento", Toast.LENGTH_SHORT).show()
+                          _insertSuccess.postValue(false)
                         }
                 }
                 .addOnFailureListener { e ->
-                    Log.w(TAG, "Errore durante l'aggiunta del documento", e)
+                    Toast.makeText(context, "Errore durante l'aggiunta del documento", Toast.LENGTH_SHORT).show()
+                    Log.e("TAG", "Errore durante l'aggiunta del documento", e)
+                    _insertSuccess.postValue(false)
                 }
         }
     }
 
-    fun aggiornaMedicina(foto: Uri?,id_medicina: String?){
+
+
+    fun aggiornaMedicina(foto: Uri?, id_medicina: String?, context: Context) {
+        if (id_medicina == null || context == null) {
+            Toast.makeText(context, "ID medicina o contesto non valido", Toast.LENGTH_SHORT).show()
+            _insertSuccess.postValue(false)
+            return
+        }
+
+        if (nomeMedicina.value.isNullOrEmpty() ||
+            numeroMedicine.value.isNullOrEmpty() ||
+            voltePerGiorno.value.isNullOrEmpty() ||
+            dataInizio.value.isNullOrEmpty()) {
+
+            Toast.makeText(context, "Completa tutti i campi", Toast.LENGTH_SHORT).show()
+            _insertSuccess.postValue(false)
+            return
+        }
 
         auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
         val uid = user?.uid
         if (uid == null) {
             Log.w("MedicinaViewModel", "Utente non autenticato")
+            Toast.makeText(context, "Utente non autenticato", Toast.LENGTH_SHORT).show()
+            _insertSuccess.postValue(false)
             return
         }
+        
         imageUri = foto
+
         uploadImageAndGetUrl { imageUrl ->
-            // Sanitizzazione e preparazione degli orari
             val sanitizedOrari = orari.value?.filterKeys { it != "initialized" }?.mapValues { (_, orarioData) ->
                 Orario(
                     orario = orarioData.orario,
                     stato = orarioData.stato
                 )
             } ?: emptyMap()
-        val updates = hashMapOf(
-            "user_id" to uid,
-            "nome" to (nomeMedicina.value ?: "0"),
-            "numero_medicine" to (numeroMedicine.value ?: "0"),
-            "Numero_Per_Giorno" to (voltePerGiorno.value ?: "0"),
-            "Data_inizio" to (dataInizio.value ?: "0"),
-            "foto" to imageUrl,
-            "orari" to sanitizedOrari
-        )
 
-            if (id_medicina != null) {
-                db.collection("medicine").document(id_medicina)
-                    .update(updates as Map<String, Any>)
-                    .addOnSuccessListener {
-                        Log.d("ViewModel", "Documento aggiornato con successo")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("ViewModel", "Errore durante l'aggiornamento del documento", e)
-                    }
-            }
-    }
+            val updates = hashMapOf(
+                "user_id" to uid,
+                "nome" to (nomeMedicina.value ?: "0"),
+                "numero_medicine" to (numeroMedicine.value ?: "0"),
+                "Numero_Per_Giorno" to (voltePerGiorno.value ?: "0"),
+                "Data_inizio" to (dataInizio.value ?: "0"),
+                "foto" to imageUrl,
+                "orari" to sanitizedOrari
+            )
+
+            db.collection("medicine").document(id_medicina)
+                .update(updates as Map<String, Any>)
+                .addOnSuccessListener {
+                    Log.d("ViewModel", "Documento aggiornato con successo")
+                    Toast.makeText(context, "Medicina aggiornata correttamente", Toast.LENGTH_SHORT).show()
+                    _insertSuccess.postValue(true)
+                }
+                .addOnFailureListener { e ->
+                    Log.e("ViewModel", "Errore durante l'aggiornamento del documento", e)
+                    _insertSuccess.postValue(false) }
+        }
     }
 
     fun datiMedicinaX(id_medicina: String?) {
@@ -213,6 +252,28 @@ class MedicinaViewModel : ViewModel() {
             _medicineX.postValue(null)
         }
     }
+    fun getFotoMedicina(id_medicina: String, callback: (String) -> Unit) {
+        db.collection("medicine")
+            .document(id_medicina)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot != null && snapshot.exists()) {
+                    // Recupera il valore del campo 'foto'
+                    val risultato = snapshot.getString("foto") ?: "1"
+                    callback(risultato)
+                } else {
+                    // Documento non trovato, restituisci il valore predefinito
+                    callback("1")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore error", e.message.toString())
+                // In caso di errore, restituisci il valore predefinito
+                callback("1")
+            }
+    }
+
+
     private fun updateTimesPerDay(times: String?) {
         val timesList = mutableListOf<String>()
         times?.toIntOrNull()?.let {
@@ -259,49 +320,51 @@ class MedicinaViewModel : ViewModel() {
     }
 
 
-    private fun prepareExpandedData(medicinaDataList: List<MedicinaData>): List<ExpandedMedicineItem> {
+    fun prepareExpandedData(medicinaDataList: List<MedicinaData>): List<ExpandedMedicineItem> {
         val expandedList = mutableListOf<ExpandedMedicineItem>()
 
         for (medicina in medicinaDataList) {
+            val numeroMedicine = medicina.numero_medicine.toIntOrNull()
+            if (numeroMedicine != null && numeroMedicine > 0){
             medicina.orari.forEach { (id, orario) ->
-               if(orario.stato==false){ expandedList.add(
-                    ExpandedMedicineItem(
-                        id =medicina.id,
-                        user_id = medicina.user_id,
-                        nome = medicina.nome,
-                        numero_medicine = medicina.numero_medicine,
-                        Numero_Per_Giorno = medicina.Numero_Per_Giorno,
-                        Data_inizio = medicina.Data_inizio,
-                        foto = medicina.foto,
-                        orario = orario.orario,
-                        stato=orario.stato
-                    )
-                )
-            }}
+                    if (orario.stato == false) {
+                        expandedList.add(
+                            ExpandedMedicineItem(
+                                id = medicina.id,
+                                user_id = medicina.user_id,
+                                nome = medicina.nome,
+                                numero_medicine = medicina.numero_medicine,
+                                Numero_Per_Giorno = medicina.Numero_Per_Giorno,
+                                Data_inizio = medicina.Data_inizio,
+                                foto = medicina.foto,
+                                orario = orario.orario,
+                                stato = orario.stato
+                            )
+                        )
+                    }
+                }
+        }
         }
 
-        return expandedList
+        return expandedList.sortedBy { it.orario }
     }
 
-    fun deleteMedicina(id_medicina: String){
-        if (id_medicina == null) {
-            Log.e("ViewModel", "Invalid appointment ID")
-            return
-        }
+
+    fun deleteMedicina(idmedicina: String, context: Context){
         val currentList = _medicineList.value?.toMutableList() ?: mutableListOf()
-        db.collection("medicine").document(id_medicina)
+        db.collection("medicine").document(idmedicina)
             .delete()
             .addOnSuccessListener {
                 val iterator = currentList.iterator()
                 while (iterator.hasNext()) {
                     val medicina = iterator.next()
-                    if (medicina.id == id_medicina) {
+                    if (medicina.id == idmedicina) {
                         iterator.remove()
                         break
                     }
                 }
                 _medicineList.value = currentList
-                Log.d("ViewModel", "Appointment deleted and list updated")
+                Toast.makeText(context, "Eliminazione avvenuta con successo", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
                 Log.e("Firestore error", "Error deleting appointment", e)

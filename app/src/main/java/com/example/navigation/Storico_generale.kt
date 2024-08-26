@@ -8,15 +8,12 @@ import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.navigation.databinding.StoricoGeneraleBinding
-import com.google.firebase.firestore.FirebaseFirestore
 import androidx.appcompat.widget.Toolbar
 
 class Storico_generale : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var userArrayList: ArrayList<User>
     private lateinit var myAdapter: MyAdapter
-    private lateinit var db: FirebaseFirestore
     private lateinit var binding: StoricoGeneraleBinding
     private val viewModel: DatiUtenteViewModel by viewModels()
 

@@ -2,7 +2,6 @@ package com.example.navigation
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.app.TimePickerDialog
 import android.widget.Button
 import android.widget.EditText
@@ -13,6 +12,7 @@ import androidx.activity.viewModels
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
+import android.widget.Toast
 
 class DatiAppuntamenti: AppCompatActivity() {
     private val viewModel: AppuntamentiViewModel by viewModels()
@@ -60,14 +60,18 @@ class DatiAppuntamenti: AppCompatActivity() {
         }
         findViewById<Button>(R.id.conferma_dati_appuntamento).setOnClickListener{
             if(uid!=null){
-                Log.d("ViewModel", "Appointment deleted and list updated${intent}")
                 if(intent.getStringExtra("id_appuntamento") !=null){
-            viewModel.UpdateAppuntamento(uid,titolo.text.toString(),luogo.text.toString(),tvSelectedDate.text.toString(),tvSelectedTimer.text.toString(),intent.getStringExtra("id_appuntamento"))
+            viewModel.UpdateAppuntamento(uid,titolo.text.toString(),luogo.text.toString(),tvSelectedDate.text.toString(),tvSelectedTimer.text.toString(),intent.getStringExtra("id_appuntamento"),this)
             }
-                else viewModel.inserisciDatiAppuntamenti(uid,titolo.text.toString(),luogo.text.toString(),tvSelectedDate.text.toString(),tvSelectedTimer.text.toString())
+                else viewModel.inserisciDatiAppuntamenti(uid,titolo.text.toString(),luogo.text.toString(),tvSelectedDate.text.toString(),tvSelectedTimer.text.toString(),this)
 
-                val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+                viewModel.risultato.observe(this,  { success ->
+                    if (success) {
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                })
         }
         }
 

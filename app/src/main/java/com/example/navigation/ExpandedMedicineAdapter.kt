@@ -7,8 +7,11 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import android.content.Context
 
 class ExpandedMedicineAdapter(
+    private val context: Context,
     private val medicineList: ArrayList<ExpandedMedicineItem>,
     private val onPresaClick: (ExpandedMedicineItem) -> Unit,
     private val onUpdateClick: (ExpandedMedicineItem) -> Unit,
@@ -26,6 +29,14 @@ class ExpandedMedicineAdapter(
         holder.data.text = medicina.Data_inizio
         holder.numeroMedicine.text = medicina.numero_medicine
         holder.voltePerGiorno.text = medicina.Numero_Per_Giorno
+
+        holder.fotoImageView?.let {
+            Glide.with(context)
+                .load(medicina.foto)
+                .error(R.drawable.default_medicne)
+                .into(it)
+        }
+
             val orarioTextView=TextView(holder.itemView.context)
             orarioTextView.text=medicina.orario
             holder.orariContainer.addView(orarioTextView)

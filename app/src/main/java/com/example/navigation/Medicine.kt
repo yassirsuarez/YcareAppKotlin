@@ -43,12 +43,12 @@ class Medicine : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.setHasFixedSize(true)
 
-        myAdapter = ExpandedMedicineAdapter(arrayListOf(),
+        myAdapter = ExpandedMedicineAdapter(requireContext(),arrayListOf(),
             onPresaClick = { medicina ->
-                viewModel.updatePresa(medicina.id, medicina.orario)
+                viewModel.updatePresa(medicina.id, medicina.orario,requireContext())
                 val intent = Intent(requireContext(), MainActivity::class.java)
-                startActivity(intent)
                 requireActivity().finish()
+                startActivity(intent)
             },
             onUpdateClick = {medicina->
                 val intent=Intent(requireContext(),Medicina_x::class.java)
@@ -66,7 +66,5 @@ class Medicine : Fragment() {
         })
         viewModel.datiMedicineList()
     }
-
-
 }
 

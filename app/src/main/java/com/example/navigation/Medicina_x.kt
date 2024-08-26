@@ -15,6 +15,7 @@ import android.widget.*
 import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.*
+import android.util.Log
 
 
 class Medicina_x : AppCompatActivity() {
@@ -25,6 +26,7 @@ class Medicina_x : AppCompatActivity() {
     private val viewModel:MedicinaViewModel by viewModels()
     private lateinit var fotoMedicine: ImageView
     private var imageUri: Uri? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -33,6 +35,14 @@ class Medicina_x : AppCompatActivity() {
 
             viewModel.medicineX.observe(this,{medicina->
                 if (medicina != null) {
+                    if (medicina.foto!=null){
+                    findViewById<ImageView>(R.id.medicine_photo)?.let{
+                        Glide.with(this)
+                            .load(medicina.foto)
+                            .into(it)}
+                        imageUri=Uri.parse(medicina.foto)
+
+                    }
                     findViewById<EditText>(R.id.medicina_nome).setText(medicina.nome)
                     findViewById<EditText>(R.id.medicine_numero).setText(medicina.numero_medicine)
                     findViewById<TextView>(R.id.label_data_inizio_medicina).text = medicina.Data_inizio
@@ -74,7 +84,6 @@ class Medicina_x : AppCompatActivity() {
                             showTimePickerDialog(this, time) }
                     }
                     timeButtonsContainer.addView(timeButton)
-
                 }
             } ?: run {
                 Toast.makeText(this, "Inserisci un numero valido di volte al giorno", Toast.LENGTH_SHORT).show()
@@ -84,15 +93,18 @@ class Medicina_x : AppCompatActivity() {
             showDatePicker()
         }
 
-
         binding.medicinaConferma.setOnClickListener{
             if(!intent.getStringExtra("id_medicina").isNullOrEmpty()){
-                viewModel.aggiornaMedicina(imageUri,intent.getStringExtra("id_medicina"))}
-            else viewModel.inserireMedicina(imageUri)
+                viewModel.aggiornaMedicina(imageUri,intent.getStringExtra("id_medicina"),this)}
+            else viewModel.inserireMedicina(imageUri,this)
 
-            finish()
-            val intent=Intent(this,MainActivity::class.java)
-            startActivity(intent)
+            viewModel.insertSuccess.observe(this, Observer { success ->
+                if (success) {
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+            })
         }
 
         fotoMedicine= binding.medicinePhoto
@@ -101,8 +113,6 @@ class Medicina_x : AppCompatActivity() {
         }
 
     }
-
-
 
     private fun showDatePicker() {
         val datePickerDialog = DatePickerDialog(

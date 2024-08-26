@@ -8,7 +8,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
-class DailyFirebaseUpdateWorker(context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
+open class DailyFirebaseUpdateWorker(context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
         val db = FirebaseFirestore.getInstance()
@@ -29,16 +29,16 @@ class DailyFirebaseUpdateWorker(context: Context, workerParams: WorkerParameters
 
                 document.reference.update("orari", updatedOrari)
                     .addOnSuccessListener {
-                        Log.d("DailyFirebaseUpdateWorker", "Document ${document.id} successfully updated.")
+                        Log.d("DailyFirebaseUpdateWorker", "Document0 ${document.id} caricato con successo.")
                     }
                     .addOnFailureListener { e ->
-                        Log.e("DailyFirebaseUpdateWorker", "Error updating document ${document.id}: ${e.message}")
+                        Log.e("DailyFirebaseUpdateWorker", "Errore documento ${document.id}: ${e.message}")
                     }
             }
 
             Result.success()
         } catch (e: Exception) {
-            Log.e("DailyFirebaseUpdateWorker", "Error updating documents:", e)
+            Log.e("DailyFirebaseUpdateWorker", "Errore caricamento: ", e)
             Result.retry()
         }
     }

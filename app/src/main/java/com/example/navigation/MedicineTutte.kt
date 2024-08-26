@@ -25,9 +25,9 @@ class MedicineTutte : AppCompatActivity(){
         recyclerView = binding.medicineTutte
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.setHasFixedSize(true)
-        myAdapter=MedicineAdapter(arrayListOf(),
+        myAdapter=MedicineAdapter(this,arrayListOf(),
             onDeleteClick = {medicina ->
-                viewModel.deleteMedicina(medicina.id)},
+                viewModel.deleteMedicina(medicina.id,this)},
             onUpdateClick = {medicina->
                 val intent=Intent(this,Medicina_x::class.java)
                 intent.putExtra("id_medicina", medicina.id)

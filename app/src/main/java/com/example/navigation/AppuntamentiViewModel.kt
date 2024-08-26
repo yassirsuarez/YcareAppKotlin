@@ -16,6 +16,8 @@ import com.google.firebase.ktx.Firebase
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import android.content.Context
+import android.widget.Toast
 
 class AppuntamentiViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
@@ -26,8 +28,19 @@ class AppuntamentiViewModel : ViewModel() {
     val appuntamentiList: LiveData<List<AppuntamentiData>> get() = _appuntamentiList
     private val _numeroAppuntamentiOggi = MutableLiveData<Int>()
     val numeroAppuntamentiOggi: LiveData<Int> get() = _numeroAppuntamentiOggi
-    fun inserisciDatiAppuntamenti(uid:String,titolo:String,luogo:String,data:String,ora:String) {
+    private val _risultato = MutableLiveData<Boolean>()
+    val risultato: LiveData<Boolean> get() = _risultato
+
+    fun inserisciDatiAppuntamenti(uid:String,titolo:String,luogo:String,data:String,ora:String,context:Context) {
         val db = Firebase.firestore
+        if (titolo.isNullOrEmpty() ||
+            luogo.isNullOrEmpty() ||
+            data.isNullOrEmpty() ||
+            ora.isNullOrEmpty()) {
+            Toast.makeText(context, "Completa tutti i campi", Toast.LENGTH_SHORT).show()
+            _risultato.postValue(false)
+            return
+        }
         val appuntamenti = hashMapOf(
             "id_user" to uid,
             "titolo" to titolo,
@@ -39,18 +52,19 @@ class AppuntamentiViewModel : ViewModel() {
             .add(appuntamenti)
             .addOnSuccessListener { documentReference ->
                 val documentId = documentReference.id
-                // Ora aggiorna il documento con il nuovo ID
                 documentReference.update("id", documentId)
                     .addOnSuccessListener {
                         Log.w(TAG, "Documento aggiunto e aggiornato con ID: $documentId")
+                        _risultato.postValue(true)
                     }
                     .addOnFailureListener { e ->
                         Log.w(TAG, "Errore durante l'aggiornamento del documento", e)
-                    }
+
+                        _risultato.postValue(false)  }
             }
             .addOnFailureListener { e ->
                 Log.w(TAG, "Errore durante l'aggiunta del documento", e)
-            }
+                _risultato.postValue(false)  }
     }
 
     fun datiAppuntamentiLista(id: String?) {
@@ -60,7 +74,7 @@ class AppuntamentiViewModel : ViewModel() {
                 .orderBy("data", Query.Direction.DESCENDING)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
-                        Log.e("Firestore error", error.message.toString())
+                        Log.e("Firestore errore", error.message.toString())
                         return@addSnapshotListener
                     }
 
@@ -106,7 +120,7 @@ class AppuntamentiViewModel : ViewModel() {
                             count++
                         }
                     } catch (e: DateTimeParseException) {
-                        Log.e("DateParseError", "Error parsing date: ${appuntamento?.data}", e)
+                        Log.e("DateParseError", "Errore dato: ${appuntamento?.data}", e)
                     }
                 }
                 _numeroAppuntamentiOggi.value = count
@@ -172,7 +186,15 @@ class AppuntamentiViewModel : ViewModel() {
             }
     }
 
-    fun UpdateAppuntamento(uid:String?,titolo:String?,luogo:String?,data:String?,ora:String?, id:String?){
+    fun UpdateAppuntamento(uid:String?,titolo:String?,luogo:String?,data:String?,ora:String?, id:String?,context:Context){
+        if (titolo.isNullOrEmpty() ||
+            luogo.isNullOrEmpty() ||
+            data.isNullOrEmpty() ||
+            ora.isNullOrEmpty()) {
+            Toast.makeText(context, "Completa tutti i campi", Toast.LENGTH_SHORT).show()
+            _risultato.postValue(false)
+            return
+        }
         if(id!=null){
         val appuntamenti = hashMapOf(
             "id_user" to uid,
@@ -185,10 +207,10 @@ class AppuntamentiViewModel : ViewModel() {
             .update(appuntamentiMap)
             .addOnSuccessListener {
                 Log.d("ViewModel", "Documento aggiornato con successo")
-            }
+                _risultato.postValue(true)  }
             .addOnFailureListener { e ->
                 Log.e("ViewModel", "Errore durante l'aggiornamento del documento", e)
-            }
+                _risultato.postValue(false)  }
     }}
 
 }

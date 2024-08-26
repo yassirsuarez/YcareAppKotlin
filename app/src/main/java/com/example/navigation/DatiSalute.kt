@@ -14,6 +14,7 @@ import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.widget.Toast
 
 class DatiSalute : AppCompatActivity() {
     lateinit var peso: EditText
@@ -47,6 +48,10 @@ class DatiSalute : AppCompatActivity() {
     }
     private fun updateDatiSalute(uid: String, dataIn: String?) {
         val db = Firebase.firestore
+        if (peso.text.toString().isNullOrEmpty() || altezza.text.toString().isNullOrEmpty() ) {
+            Toast.makeText(this, "Completa tutti i campi obbligatori", Toast.LENGTH_SHORT).show()
+            return
+        }
         val updates = hashMapOf(
             "peso" to peso.text.toString(),
             "altezza" to altezza.text.toString()
@@ -83,7 +88,10 @@ class DatiSalute : AppCompatActivity() {
     }
     private fun setupUserDatabase(uid: String) {
         val db = Firebase.firestore
-
+        if (peso.text.toString().isNullOrEmpty() || altezza.text.toString().isNullOrEmpty() ) {
+            Toast.makeText(this, "Completa tutti i campi obbligatori", Toast.LENGTH_SHORT).show()
+            return
+        }
         val salute = hashMapOf(
             "id" to uid,
             "peso" to peso.text.toString(),

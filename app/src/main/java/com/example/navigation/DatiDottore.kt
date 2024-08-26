@@ -22,6 +22,7 @@ import com.google.firebase.storage.FirebaseStorage
 import android.net.Uri
 import androidx.activity.viewModels
 import androidx.lifecycle.Observer
+import android.content.Context
 
 class DatiDottore : AppCompatActivity() {
         private lateinit var db: FirebaseFirestore
@@ -31,6 +32,7 @@ class DatiDottore : AppCompatActivity() {
         private lateinit var uid: String
         private lateinit var fotoDoctor: ImageView
         private var imageUri: Uri? = null
+        private var risultato : Boolean=false
         private val viewModel: DottoreViewModel by viewModels()
 
         override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +50,9 @@ class DatiDottore : AppCompatActivity() {
                 viewModel.numero.observe(this, Observer { numero ->
                     findViewById<EditText>(R.id.numero_dott).setText(numero)
                 })
-                viewModel.foto.observe(this, { foto ->
+                viewModel.foto.observe(this,
+                    {
+                    foto ->
                     foto?.let { uriString ->
                         Glide.with(this)
                             .load(uriString)
@@ -57,8 +61,6 @@ class DatiDottore : AppCompatActivity() {
                 })
             }
 
-            var imageUri: String? = null
-            // Inizializzazione di FirebaseAuth e Firestore
             auth = FirebaseAuth.getInstance()
             db = FirebaseFirestore.getInstance()
             fotoDoctor = findViewById(R.id.foto_dottore)
@@ -105,35 +107,61 @@ class DatiDottore : AppCompatActivity() {
             mainLayout.addView(dayContainer)
         }
 
-       findViewById<Button>(R.id.conferma).setOnClickListener(){
-           if(intent.getIntExtra("tipo",0)==1){
-               val orari = mutableMapOf<String, MutableMap<String, String>>()
-               val daysOfWeek = arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
+            findViewById<Button>(R.id.conferma).setOnClickListener() {
+                if (intent.getIntExtra("tipo", 0) == 1) {
+                    val orari = mutableMapOf<String, MutableMap<String, String>>()
+                    val daysOfWeek = arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
 
-               for (day in daysOfWeek) {
-                   val daySchedule = mutableMapOf<String, String>()
+                    for (day in daysOfWeek) {
+                        val daySchedule = mutableMapOf<String, String>()
 
-                   val morningStartButton = buttonMap[generateIdForDayAndSession(day, "MattinaInizio")]
-                   val morningEndButton = buttonMap[generateIdForDayAndSession(day, "MattinaFine")]
-                   val afternoonStartButton = buttonMap[generateIdForDayAndSession(day, "PomeriggioInizio")]
-                   val afternoonEndButton = buttonMap[generateIdForDayAndSession(day, "PomeriggioFine")]
+                        val morningStartButton = buttonMap[generateIdForDayAndSession(day, "MattinaInizio")]
+                        val morningEndButton = buttonMap[generateIdForDayAndSession(day, "MattinaFine")]
+                        val afternoonStartButton = buttonMap[generateIdForDayAndSession(day, "PomeriggioInizio")]
+                        val afternoonEndButton = buttonMap[generateIdForDayAndSession(day, "PomeriggioFine")]
 
-                   daySchedule["MattinaInizio"] = viewModel.verificaOra(morningStartButton?.text.toString())
-                   daySchedule["MattinaFine"] = viewModel.verificaOra(morningEndButton?.text.toString())
-                   daySchedule["PomeriggioInizio"] = viewModel.verificaOra(afternoonStartButton?.text.toString())
-                   daySchedule["PomeriggioFine"] = viewModel.verificaOra(afternoonEndButton?.text.toString())
+                        daySchedule["MattinaInizio"] = viewModel.verificaOra(morningStartButton?.text.toString())
+                        daySchedule["MattinaFine"] = viewModel.verificaOra(morningEndButton?.text.toString())
+                        daySchedule["PomeriggioInizio"] = viewModel.verificaOra(afternoonStartButton?.text.toString())
+                        daySchedule["PomeriggioFine"] = viewModel.verificaOra(afternoonEndButton?.text.toString())
 
-                   orari[day] = daySchedule
-               }
-               uploadImageAndGetUrl(uid) { imageUrl ->
-               viewModel.updateDottore(uid,findViewById<EditText>(R.id.nome_dottore).text.toString(),
-                   findViewById<EditText>(R.id.luogo_dottore).text.toString(),
-                   findViewById<EditText>(R.id.numero_dott).text.toString(),imageUrl,orari)
-               }
-           }
-           else saveDataToFirestore(uid)
-          finish()
-       }
+                        orari[day] = daySchedule
+                    }
+
+                    uploadImageAndGetUrl(uid) { imageUrl ->
+                        viewModel.updateDottore(
+                            uid,
+                            findViewById<EditText>(R.id.nome_dottore).text.toString(),
+                            findViewById<EditText>(R.id.luogo_dottore).text.toString(),
+                            findViewById<EditText>(R.id.numero_dott).text.toString(),
+                            imageUrl,
+                            orari,this
+                        ) { success ->
+                            risultato = success
+
+                            if (risultato) {
+                                val intent = Intent(this, MainActivity::class.java)
+                                startActivity(intent)
+                                finish()
+                            } else {
+                                Toast.makeText(
+                                    this,
+                                    "Errore durante l'inserimento",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+
+                } else {
+                    saveDataDottorre(uid, this)
+                    if (risultato) {
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                }
+            }
     }
     private fun selectImage() {
         val intent = Intent(Intent.ACTION_PICK)
@@ -168,7 +196,6 @@ class DatiDottore : AppCompatActivity() {
             id = generateUniqueId()
         }
 
-        // Usa un ID unico per "Inizio" e "Fine"
         val endButton = Button(this).apply {
             text = orari?.get(day)?.get(endKey)?.takeIf { it != "--:--" } ?: "Fine"
             id = generateUniqueId()
@@ -200,13 +227,18 @@ class DatiDottore : AppCompatActivity() {
         }
     }
 
-    private fun saveDataToFirestore(id_user:String) {
+    private fun saveDataDottorre(id_user:String,context: Context) {
         val nome = findViewById<EditText>(R.id.nome_dottore).text.toString()
         val luogo =  findViewById<EditText>(R.id.luogo_dottore).text.toString()
         val numero= findViewById<EditText>(R.id.numero_dott).text.toString()
         val orari = mutableMapOf<String, MutableMap<String, String>>()
         val daysOfWeek = arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
 
+        if (nome.isEmpty() || luogo.isEmpty() || numero.isEmpty()) {
+            Toast.makeText(context, "Completa tutti i campi obbligatori", Toast.LENGTH_SHORT).show()
+            risultato=false
+            return
+        }
         for (day in daysOfWeek) {
             val daySchedule = mutableMapOf<String, String>()
 
@@ -232,15 +264,21 @@ class DatiDottore : AppCompatActivity() {
                 "foto" to imageUrl
             )
 
-        db.collection("dottore")
-            .document(id_user) // Utilizza l'UID dell'utente come nome del documento
-            .set(userData)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Dati salvati con successo", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Errore durante il salvataggio: ${e.message}", Toast.LENGTH_SHORT).show()
-            }}
+            db.collection("dottore")
+                .document(id_user)
+                .set(userData)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Dati salvati con successo", Toast.LENGTH_SHORT).show()
+                    risultato = true
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Errore durante il salvataggio: ${e.message}", Toast.LENGTH_SHORT).show()
+                    risultato = false
+                }
+        }
     }
 
     private fun uploadImageAndGetUrl(uid: String, callback: (String?) -> Unit) {
@@ -261,7 +299,7 @@ class DatiDottore : AppCompatActivity() {
                     Log.e(TAG, "Errore nel caricare l'immagine", e)
                     callback(null)
                 }
-        } ?: callback(null) // Chiamata del callback anche se non c'è un URI
+        } ?: callback(null)
     }
     private fun generateIdForDayAndSession(day: String, session: String): Int {
         val id = when(day) {

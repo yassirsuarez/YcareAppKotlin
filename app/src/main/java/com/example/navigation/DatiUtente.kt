@@ -20,6 +20,7 @@ import com.google.firebase.storage.FirebaseStorage
 import android.app.DatePickerDialog
 import java.text.SimpleDateFormat
 import java.util.*
+import android.widget.Toast
 
 class DatiUtente : AppCompatActivity() {
     lateinit var nome: EditText
@@ -136,7 +137,10 @@ class DatiUtente : AppCompatActivity() {
             else -> {
             }
         }
-
+        if (nome.text.toString().isEmpty() || cognome.text.toString().isEmpty() || data_nascita.text.toString().isEmpty()) {
+            Toast.makeText(this, "Completa tutti i campi obbligatori", Toast.LENGTH_SHORT).show()
+            return
+        }
         uploadImageAndGetUrl(uid) { imageUrl ->
             val user = hashMapOf(
                 "id" to uid,
@@ -151,7 +155,6 @@ class DatiUtente : AppCompatActivity() {
                 .add(user)
                 .addOnSuccessListener { documentReference ->
                     Log.w(TAG, "Documento aggiunto con ID: ${documentReference.id}")
-                    // Avvia MainActivity e chiudi l'attività corrente
                     val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
                     finish()
@@ -173,7 +176,10 @@ class DatiUtente : AppCompatActivity() {
             else -> {
             }
         }
-
+        if (nome.text.toString().isEmpty() || cognome.text.toString().isEmpty() || data_nascita.text.toString().isEmpty()) {
+            Toast.makeText(this, "Completa tutti i campi obbligatori", Toast.LENGTH_SHORT).show()
+            return
+        }
         uploadImageAndGetUrl(uid) { imageUrl ->
             val updates = hashMapOf(
                 "nome" to nome.text.toString(),

@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity() {
     private fun showInfoDialog() {
         val alertDialogBuilder = AlertDialog.Builder(this)
         alertDialogBuilder.setTitle("Informazioni sull'app")
-        alertDialogBuilder.setMessage("Aggiungi qui le informazioni sull'app")
+        alertDialogBuilder.setMessage("Y-Care è l'app ideale per gestire la tua salute in modo semplice e organizzato. Con Ycare, puoi monitorare le tue visite mediche, tenere traccia dei tuoi farmaci e gestire i tuoi dati sanitari. Inoltre, facilita il contatto diretto con il tuo medico curante, rendendo la comunicazione più facile e veloce.")
 
         alertDialogBuilder.setPositiveButton("OK") { dialog, which ->
             dialog.dismiss()
@@ -175,7 +175,7 @@ class MainActivity : AppCompatActivity() {
         else {
             Toast.makeText(
                 this@MainActivity,
-                "Permesso non garantito" ,
+                "Permesso notifiche non garantito" ,
                         Toast.LENGTH_SHORT
             ).show()
         }

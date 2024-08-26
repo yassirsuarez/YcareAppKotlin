@@ -3,12 +3,14 @@ package com.example.navigation
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.navigation.AdapterAppuntamenti.MyViewHolder
+import com.bumptech.glide.Glide
+import android.content.Context
 
-class MedicineAdapter(private val medicineList: ArrayList<MedicinaData>,
+class MedicineAdapter(private val context: Context, private val medicineList: ArrayList<MedicinaData>,
                       private val onDeleteClick:(MedicinaData)->Unit,
                       private val onUpdateClick:(MedicinaData)->Unit,
                       private val onShareClick:(MedicinaData)->Unit)
@@ -24,6 +26,14 @@ class MedicineAdapter(private val medicineList: ArrayList<MedicinaData>,
         holder.data.text=medicina.Data_inizio
         holder.numeroMedicine.text=medicina.numero_medicine.toString()
         holder.voltePerGiorno.text=medicina.Numero_Per_Giorno.toString()
+
+        holder.immagine?.let {
+                Glide.with(context)
+                    .load(medicina.foto)
+                    .error(R.drawable.default_medicne)
+                    .into(it)
+            }
+
         medicina.orari.values.forEach { orario ->
             val orarioTextView = TextView(holder.itemView.context)
             orarioTextView.text = orario.orario + " "
@@ -49,6 +59,7 @@ class MedicineAdapter(private val medicineList: ArrayList<MedicinaData>,
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val immagine:ImageView=itemView.findViewById(R.id.foto_medicina)
         val titolo: TextView = itemView.findViewById(R.id.nome_medicina)
         val data: TextView = itemView.findViewById(R.id.data_inizio_medicina)
         val numeroMedicine: TextView = itemView.findViewById(R.id.numero_medicine)
